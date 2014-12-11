@@ -73,7 +73,7 @@ bin_awk=`which awk`
 bin_cut=`which cut`
 
 if [ $(whoami) == "nrpe" ] ;then
-   temp_dir=`$bin_grep nrpe /etc/passwd | $bin_cut -d: -f6`
+   temp_dir=/var/run/nrpe
 else
    temp_dir=/tmp
 fi
@@ -89,6 +89,12 @@ reverse_tmpfile_rx=$temp_dir/check_bandwidth_rx_reverse_"$IF"_"$$".tmp
 reverse_tmpfile_tx=$temp_dir/check_bandwidth_tx_reverse_"$IF"_"$$".tmp
 deltafile_rx=$temp_dir/check_bandwidth_rx_delta_"$IF"_"$$".tmp
 deltafile_tx=$temp_dir/check_bandwidth_tx_delta_"$IF"_"$$".tmp
+
+touch $tmpfile_rx
+if ! [ -f $tmpfile_rx ] ; then
+	echo "can't create files in temp dir $temp_dir"
+	exit 3
+fi
 
 warn_kbits=`$bin_expr $warn '*' 1000000`
 crit_kbits=`$bin_expr $crit '*' 1000000`
