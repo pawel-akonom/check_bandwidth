@@ -40,14 +40,17 @@ warn_kbits=`$bin_expr $warn '*' 1000000`
 crit_kbits=`$bin_expr $crit '*' 1000000`
 iface_speed_kbits=`$bin_expr $iface_speed '*' 1000000`
 
+sysrx_file=/sys/class/net/"$IF"/statistics/rx_bytes
+systx_file=/sys/class/net/"$IF"/statistics/tx_bytes
+
 if [ "$system" = "linux" ];
     then
         START_TIME=`date +%s`
         n=0
         while [ $n -lt $sec ]
             do
-                cat /sys/class/net/"$IF"/statistics/rx_bytes >> $tmpfile_rx
-                cat /sys/class/net/"$IF"/statistics/tx_bytes >> $tmpfile_tx
+                cat $sysrx_file >> $tmpfile_rx
+                cat $systx_file >> $tmpfile_tx
                 sleep $INTERVAL
                 let "n = $n + 1"
             done
@@ -58,7 +61,7 @@ if [ "$system" = "linux" ];
         do
             if [ -z "$RBYTES" ];
                 then
-                    RBYTES=`cat /sys/class/net/"$IF"/statistics/rx_bytes`
+                    RBYTES=`cat $sysrx_file`
                     $bin_expr $RBYTES - $line >> $deltafile_rx;
                 else
                     $bin_expr $RBYTES - $line >> $deltafile_rx;
@@ -69,7 +72,7 @@ if [ "$system" = "linux" ];
         do
             if [ -z "$TBYTES" ];
                 then
-                    TBYTES=`cat /sys/class/net/"$IF"/statistics/tx_bytes`
+                    TBYTES=`cat $systx_file`
                     $bin_expr $TBYTES - $line >> $deltafile_tx;
                 else
                     $bin_expr $TBYTES - $line >> $deltafile_tx;
