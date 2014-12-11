@@ -6,11 +6,25 @@ script_name=$(basename $0)
 
 #echo "Current script agruments: $@"
 
-if [ "$#" -ne 5 ]; then
+function usage ()
+{
         echo
         echo "Usage: $script_name <interface_name> <measurenment time s> <warning mbit/s> <critical mbit/s> <total mbit/s>" 
         echo
         echo "$script_name eth0 15 80 90 100"
+}
+
+function check_argument()
+{
+	if ! [[ $1 =~ "^[0-9]+$" ]] ; then
+		echo "argument: $1 - number is required"
+		usage
+		exit 3
+	fi
+}
+
+if [ "$#" -ne 5 ]; then
+	usage
         exit 3
 fi
 
@@ -19,6 +33,11 @@ sec=$2
 warn=$3
 crit=$4
 iface_speed=$5
+
+check_argument $sec
+check_argument $warn
+check_argument $crit
+check_argument $iface_speed
 
 bin_ps=`which ps`
 bin_grep=`which grep`
@@ -31,7 +50,7 @@ bin_awk=`which awk`
 bin_cut=`which cut`
 
 if [ $(whoami) == "nrpe" ] ;then
-   temp_dir=/var/run/nrpe
+   temp_dir=`$bin_grep nrpe /etc/passwd | $bin_cut -d: -f6`
 else
    temp_dir=/tmp
 fi
@@ -57,6 +76,7 @@ systx_file=/sys/class/net/"$IF"/statistics/tx_bytes
 
 if ! [ -f $sysrx_file ] ; then
         echo "file $sysrx_file not exist"
+	echo "check is $IF interface exist"
         exit 3
 fi
 
