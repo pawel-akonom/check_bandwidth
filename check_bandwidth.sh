@@ -36,7 +36,7 @@ else
    temp_dir=/tmp
 fi
 
-if [ -d $temp_dir ] ; then
+if ! [ -d $temp_dir ] ; then
    echo "temp dir $temp_dir not exist"
    exit 3 
 fi
