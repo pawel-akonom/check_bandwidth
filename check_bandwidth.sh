@@ -10,17 +10,19 @@ function usage ()
 {
         echo
         echo "Usage: $script_name <interface_name> <measurenment time s> <warning mbit/s> <critical mbit/s> <total mbit/s>" 
-        echo
+        echo "Example:"
         echo "$script_name eth0 15 80 90 100"
 }
 
 function check_argument()
 {
-	if ! [[ $1 =~ "^[0-9]+$" ]] ; then
-		echo "argument: $1 - number is required"
-		usage
-		exit 3
-	fi
+        echo $1 | egrep "^[0-9]+$" > /dev/null
+        if [ $? -ne 0 ] ; then
+                echo "argument: $1"
+                echo "positive number is required"
+                usage
+                exit 3
+        fi
 }
 
 if [ "$#" -ne 5 ]; then
@@ -38,6 +40,27 @@ check_argument $sec
 check_argument $warn
 check_argument $crit
 check_argument $iface_speed
+
+if [ $sec -le 0 ] ; then
+	echo "argmunet: $sec"
+	echo "number of seconds have to be greather than 0"
+	usage
+	exit 3
+fi
+
+if [ $warn -ge $crit ] ; then
+	echo "argmunets: $warn $crit"
+	echo "warning value can't be greather than critical value"
+	usage
+	exit 3
+fi
+
+if [ $crit -gt $iface_speed ] ; then
+	echo "argmunets: $crit $iface_speed"
+	echo "critical value can't be greather than interface speed"
+	usage
+	exit 3
+fi
 
 bin_ps=`which ps`
 bin_grep=`which grep`
@@ -82,6 +105,7 @@ fi
 
 if ! [ -f $systx_file ] ; then
         echo "file $sysrx_file not exist"
+	echo "check is $IF interface exist"
         exit 3
 fi
 
