@@ -30,7 +30,6 @@ bin_wc=`which wc`
 bin_awk=`which awk`
 bin_cut=`which cut`
 
-<<<<<<< HEAD
 if [ $(whoami) == "nrpe" ] ;then
    temp_dir=/var/run/nrpe
 else
@@ -42,9 +41,6 @@ if ! [ -d $temp_dir ] ; then
    exit 3 
 fi
 
-=======
-temp_dir=/var/run/nrpe
->>>>>>> f2403905d4906db6d83ea1607ea913f4c811a2b6
 tmpfile_rx=$temp_dir/check_bandwidth_rx_"$IF"_"$$".tmp
 tmpfile_tx=$temp_dir/check_bandwidth_tx_"$IF"_"$$".tmp
 reverse_tmpfile_rx=$temp_dir/check_bandwidth_rx_reverse_"$IF"_"$$".tmp
