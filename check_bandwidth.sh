@@ -4,6 +4,8 @@ INTERVAL="1"  # update interval in seconds
 
 script_name=$(basename $0)
 
+#echo "Current script agruments: $@"
+
 if [ "$#" -ne 5 ]; then
         echo
         echo "Usage: $script_name <interface_name> <measurenment time s> <warning mbit/s> <critical mbit/s> <total mbit/s>" 
@@ -12,7 +14,6 @@ if [ "$#" -ne 5 ]; then
         exit 3
 fi
 
-name="localhost"
 IF=$1
 sec=$2
 warn=$3
@@ -28,12 +29,13 @@ bin_sort=`which sort`
 bin_wc=`which wc`
 bin_awk=`which awk`
 
-tmpfile_rx=/tmp/"$name"_"$IF"_check_bandwidth_rx.tmp
-tmpfile_tx=/tmp/"$name"_"$IF"_check_bandwidth_tx.tmp
-reverse_tmpfile_rx=/tmp/"$name"_"$IF"_reverse_check_bandwidth_rx.tmp
-reverse_tmpfile_tx=/tmp/"$name"_"$IF"_reverse_check_bandwidth_tx.tmp
-deltafile_rx=/tmp/"$name"_"$IF"_delta_check_bandwidth_rx.tmp
-deltafile_tx=/tmp/"$name"_"$IF"_delta_check_bandwidth_tx.tmp
+temp_dir=/var/run/nrpe
+tmpfile_rx=$temp_dir/check_bandwidth_rx_"$IF"_"$$".tmp
+tmpfile_tx=$temp_dir/check_bandwidth_tx_"$IF"_"$$".tmp
+reverse_tmpfile_rx=$temp_dir/check_bandwidth_rx_reverse_"$IF"_"$$".tmp
+reverse_tmpfile_tx=$temp_dir/check_bandwidth_tx_reverse_"$IF"_"$$".tmp
+deltafile_rx=$temp_dir/check_bandwidth_rx_delta_"$IF"_"$$".tmp
+deltafile_tx=$temp_dir/check_bandwidth_tx_delta_"$IF"_"$$".tmp
 
 warn_kbits=`$bin_expr $warn '*' 1000000`
 crit_kbits=`$bin_expr $crit '*' 1000000`
@@ -42,12 +44,22 @@ iface_speed_kbits=`$bin_expr $iface_speed '*' 1000000`
 sysrx_file=/sys/class/net/"$IF"/statistics/rx_bytes
 systx_file=/sys/class/net/"$IF"/statistics/tx_bytes
 
+if ! [ -f $sysrx_file ] ; then
+        echo "file $sysrx_file not exist"
+        exit 3
+fi
+
+if ! [ -f $systx_file ] ; then
+        echo "file $sysrx_file not exist"
+        exit 3
+fi
+
 START_TIME=`date +%s`
 n=0
 while [ $n -lt $sec ]
 do
-	cat $sysrx_file >> $tmpfile_rx
-	cat $systx_file >> $tmpfile_tx
+	$bin_cat $sysrx_file >> $tmpfile_rx
+	$bin_cat $systx_file >> $tmpfile_tx
 	sleep $INTERVAL
 	let "n = $n + 1"
 done
@@ -92,6 +104,8 @@ done < $deltafile_tx
 let "DURATION = $FINISH_TIME - $START_TIME"
 let "RBITS_SEC = ( $SUM_RBYTES * 8 ) / $DURATION"
 let "TBITS_SEC = ( $SUM_TBYTES * 8 ) / $DURATION"
+
+#echo -e "RBITS_SEC=$RBITS_SEC\nTBITS_SEC=$TBITS_SEC\nwarn_kbits=$warn_kbits\ncrit_kbits=$crit_kbits\n"
 
 if [ $RBITS_SEC -lt $warn_kbits -a $TBITS_SEC -lt $warn_kbits ]
 then
