@@ -115,7 +115,6 @@ if ! [ -f $systx_file ] ; then
         exit 3
 fi
 
-START_TIME=`date +%s`
 n=0
 while [ $n -lt $sec ]
 do
@@ -124,7 +123,7 @@ do
 	sleep $INTERVAL
 	let "n = $n + 1"
 done
-FINISH_TIME=`date +%s`
+
 $bin_cat $tmpfile_rx | $bin_sort -nr > $reverse_tmpfile_rx
 $bin_cat $tmpfile_tx | $bin_sort -nr > $reverse_tmpfile_tx
 
@@ -162,7 +161,7 @@ do
 	SUM_TBYTES=`$bin_expr $SUM_TBYTES + $line`
 done < $deltafile_tx
 
-let "DURATION = $FINISH_TIME - $START_TIME"
+DURATION=$sec
 let "RBITS_SEC = ( $SUM_RBYTES * 8 ) / $DURATION"
 let "TBITS_SEC = ( $SUM_TBYTES * 8 ) / $DURATION"
 
