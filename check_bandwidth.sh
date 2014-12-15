@@ -62,15 +62,11 @@ if [ $crit -gt $iface_speed ] ; then
 	exit 3
 fi
 
-bin_ps=`which ps`
-bin_grep=`which grep`
 bin_expr=`which expr`
 bin_cat=`which cat`
-bin_tac=`which tac`
-bin_sort=`which sort`
-bin_wc=`which wc`
 bin_awk=`which awk`
-bin_cut=`which cut`
+bin_head=`which head`
+bin_tail=`which tail`
 
 if [ $(whoami) == "nrpe" ] ;then
    temp_dir=/var/run/nrpe
@@ -117,10 +113,10 @@ sleep $sec
 $bin_cat $sysrx_file >> $tmpfile_rx
 $bin_cat $systx_file >> $tmpfile_tx
 
-RBYTES_FIRST=`head -n 1 $tmpfile_rx`
-RBYTES_LAST=`tail -n 1 $tmpfile_rx`
-TBYTES_FIRST=`head -n 1 $tmpfile_rx`
-TBYTES_LAST=`tail -n 1 $tmpfile_rx`
+RBYTES_FIRST=`$bin_head -n 1 $tmpfile_rx`
+RBYTES_LAST=`$bin_tail -n 1 $tmpfile_rx`
+TBYTES_FIRST=`$bin_head -n 1 $tmpfile_rx`
+TBYTES_LAST=`$bin_tail -n 1 $tmpfile_rx`
 
 SUM_RBYTES=`$bin_expr $RBYTES_LAST - $RBYTES_FIRST`
 SUM_TBYTES=`$bin_expr $TBYTES_LAST - $TBYTES_FIRST`
