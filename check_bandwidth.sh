@@ -127,40 +127,25 @@ let "TBITS_SEC = ( $SUM_TBYTES * 8 ) / $DURATION"
 
 #echo -e "RBITS_SEC=$RBITS_SEC\nTBITS_SEC=$TBITS_SEC\nwarn_kbits=$warn_kbits\ncrit_kbits=$crit_kbits\n"
 
+data_output_r=`echo "$RBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
+data_output_t=`echo "$TBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
+percent_output_r=`echo "$RBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
+percent_output_t=`echo "$TBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
+nagvis_perfdata_r="InUsage=$percent_output_r%;$warn_kbits;$crit_kbits"
+nagvis_perfdata_t="OutUsage=$percent_output_t%;$warn_kbits;$crit_kbits"
+pnp4nagios_perfdata_r="in=$RBITS_SEC;$warn_kbits;$crit_kbits"
+pnp4nagios_perfdata_t="in=$TBITS_SEC;$warn_kbits;$crit_kbits"
+
 if [ $RBITS_SEC -lt $warn_kbits -a $TBITS_SEC -lt $warn_kbits ]
 then
-	data_output_r=`echo "$RBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	data_output_t=`echo "$TBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	percent_output_r=`echo "$RBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	percent_output_t=`echo "$TBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	nagvis_perfdata_r="InUsage=$percent_output_r%;$warn_kbits;$crit_kbits"
-	nagvis_perfdata_t="OutUsage=$percent_output_t%;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_r="in=$RBITS_SEC;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_t="in=$TBITS_SEC;$warn_kbits;$crit_kbits"
 	output="IN $data_output_r Mbit/s OUT $data_output_t Mbit/s - OK, period $DURATION sec | $nagvis_perfdata_r $nagvis_perfdata_t inBandwidth="$data_output_r"Mbs outBandwidth="$data_output_t"Mbs $pnp4nagios_perfdata_r $pnp4nagios_perfdata_t"
-            exitstatus=0
+	exitstatus=0
 elif [ $RBITS_SEC -ge $warn_kbits -a $RBITS_SEC -le $crit_kbits ] || [ $TBITS_SEC -ge $warn_kbits -a $TBITS_SEC -le $crit_kbits ];
 then
-	data_output_r=`echo "$RBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	data_output_t=`echo "$TBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	percent_output_r=`echo "$RBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	percent_output_t=`echo "$TBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	nagvis_perfdata_r="InUsage=$percent_output_r%;$warn_kbits;$crit_kbits"
-	nagvis_perfdata_t="OutUsage=$percent_output_t%;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_r="in=$RBITS_SEC;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_t="in=$TBITS_SEC;$warn_kbits;$crit_kbits"
 	output="IN $data_output_r Mbit/s OUT $data_output_t Mbit/s WARNING! period $DURATION sec | $nagvis_perfdata_r $nagvis_perfdata_t inBandwidth="$data_output_r"Mbs outBandwidth="$data_output_t"Mbs $pnp4nagios_perfdata_r $pnp4nagios_perfdata_t"
 	exitstatus=1
 elif [ $RBITS_SEC -gt $crit_kbits -o $TBITS_SEC -gt $crit_kbits ]
 then
-	data_output_r=`echo "$RBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	data_output_t=`echo "$TBITS_SEC 1000000" | $bin_awk '{ printf ("%.2f", $1/$2); }'`
-	percent_output_r=`echo "$RBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	percent_output_t=`echo "$TBITS_SEC $iface_speed_kbits 100" | $bin_awk '{ printf ("%.2f", $1/$2*$3); }'`
-	nagvis_perfdata_r="InUsage=$percent_output_r%;$warn_kbits;$crit_kbits"
-	nagvis_perfdata_t="OutUsage=$percent_output_t%;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_r="in=$RBITS_SEC;$warn_kbits;$crit_kbits"
-	pnp4nagios_perfdata_t="in=$TBITS_SEC;$warn_kbits;$crit_kbits"
 	output="IN $data_output_r Mbit/s OUT $data_output_t Mbit/s CRITICAL! period $DURATION sec | $nagvis_perfdata_r $nagvis_perfdata_t inBandwidth="$data_output_r"Mbs outBandwidth="$data_output_t"Mbs $pnp4nagios_perfdata_r $pnp4nagios_perfdata_t"
 	exitstatus=2
 else
