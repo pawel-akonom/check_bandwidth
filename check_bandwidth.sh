@@ -85,10 +85,6 @@ fi
 
 tmpfile_rx=$temp_dir/check_bandwidth_rx_"$IF"_"$$".tmp
 tmpfile_tx=$temp_dir/check_bandwidth_tx_"$IF"_"$$".tmp
-reverse_tmpfile_rx=$temp_dir/check_bandwidth_rx_reverse_"$IF"_"$$".tmp
-reverse_tmpfile_tx=$temp_dir/check_bandwidth_tx_reverse_"$IF"_"$$".tmp
-deltafile_rx=$temp_dir/check_bandwidth_rx_delta_"$IF"_"$$".tmp
-deltafile_tx=$temp_dir/check_bandwidth_tx_delta_"$IF"_"$$".tmp
 
 touch $tmpfile_rx
 if ! [ -f $tmpfile_rx ] ; then
@@ -115,51 +111,19 @@ if ! [ -f $systx_file ] ; then
         exit 3
 fi
 
-n=0
-while [ $n -lt $sec ]
-do
-	$bin_cat $sysrx_file >> $tmpfile_rx
-	$bin_cat $systx_file >> $tmpfile_tx
-	sleep $INTERVAL
-	let "n = $n + 1"
-done
+$bin_cat $sysrx_file >> $tmpfile_rx
+$bin_cat $systx_file >> $tmpfile_tx
+sleep $sec
+$bin_cat $sysrx_file >> $tmpfile_rx
+$bin_cat $systx_file >> $tmpfile_tx
 
-$bin_cat $tmpfile_rx | $bin_sort -nr > $reverse_tmpfile_rx
-$bin_cat $tmpfile_tx | $bin_sort -nr > $reverse_tmpfile_tx
+RBYTES_FIRST=`head -n 1 $tmpfile_rx`
+RBYTES_LAST=`tail -n 1 $tmpfile_rx`
+TBYTES_FIRST=`head -n 1 $tmpfile_rx`
+TBYTES_LAST=`tail -n 1 $tmpfile_rx`
 
-while read line;
-do
-	if [ -z "$RBYTES" ];
-	then
-		RBYTES=`cat $sysrx_file`
-		$bin_expr $RBYTES - $line >> $deltafile_rx;
-	else
-		$bin_expr $RBYTES - $line >> $deltafile_rx;
-	fi
-	RBYTES=$line
-done < $reverse_tmpfile_rx
-
-while read line;
-do
-	if [ -z "$TBYTES" ];
-	then
-		TBYTES=`cat $systx_file`
-		$bin_expr $TBYTES - $line >> $deltafile_tx;
-	else
-		$bin_expr $TBYTES - $line >> $deltafile_tx;
-	fi
-	TBYTES=$line
-done < $reverse_tmpfile_tx
-
-while read line;
-do
-	SUM_RBYTES=`$bin_expr $SUM_RBYTES + $line`
-done < $deltafile_rx
-
-while read line;
-do
-	SUM_TBYTES=`$bin_expr $SUM_TBYTES + $line`
-done < $deltafile_tx
+SUM_RBYTES=`$bin_expr $RBYTES_LAST - $RBYTES_FIRST`
+SUM_TBYTES=`$bin_expr $TBYTES_LAST - $TBYTES_FIRST`
 
 DURATION=$sec
 let "RBITS_SEC = ( $SUM_RBYTES * 8 ) / $DURATION"
@@ -209,11 +173,7 @@ else
 fi
 
 rm -f $tmpfile_rx
-rm -f $reverse_tmpfile_rx
-rm -f $deltafile_rx
 rm -f $tmpfile_tx
-rm -f $reverse_tmpfile_tx
-rm -f $deltafile_tx
 
 echo "$output"
 exit $exitstatus
