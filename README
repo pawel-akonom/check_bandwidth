@@ -1,0 +1,15 @@
+check_bandwidth
+---------------
+
+Nagios plugin for monitoring bandwidth usage on netwrk interface in Linux operatig system
+
+Script was found on Nagios plugins dictonary:
+http://exchange.nagios.org/directory/Plugins/Network-Connections%2C-Stats-and-Bandwidth/Check-interface-bandwidth/details
+
+I removed Cisco support, I made some code refactoring and I added arguments parsing and checking
+
+Script is reading informations from sysfs about sent and received bytes: 
+/sys/class/net/<interface_name>/statistics/rx_bytes
+/sys/class/net/<interface_name>/statistics/tx_bytes
+for period of seconds defined by script argument.
+
