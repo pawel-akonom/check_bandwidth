@@ -4,14 +4,12 @@ INTERVAL="1"  # update interval in seconds
 
 script_name=$(basename $0)
 
-#echo "Current script agruments: $@"
-
 function usage ()
 {
         echo
-        echo "Usage: $script_name <interface_name> <measurenment time s> <warning mbit/s> <critical mbit/s> <total mbit/s>" 
+        echo "Usage: $script_name [-i interface_name] [-t measurenment_time sec] [-w warning mbit/s] [-c critical mbit/s] [-s interface speed mbit/s]" 
         echo "Example:"
-        echo "$script_name eth0 15 80 90 100"
+        echo "$script_name -i eth0 -t 15 -w 80 -c 90 -s 100"
 }
 
 function check_argument()
@@ -25,16 +23,45 @@ function check_argument()
         fi
 }
 
-if [ "$#" -ne 5 ]; then
+argcounter=0
+while getopts "i:t:w:c:s:" arg; do
+	case $arg in
+		i)
+		IF=$OPTARG
+		((argcounter++))
+		;;
+		t)
+		sec=$OPTARG
+		((argcounter++))
+		;;
+		w)
+		warn=$OPTARG
+		((argcounter++))
+		;;
+		c)
+		crit=$OPTARG
+		((argcounter++))
+		;;
+		s)
+		iface_speed=$OPTARG
+		((argcounter++))
+		;;
+		*)
+		usage
+		exit 3
+		;;
+	esac
+done
+
+# echo "Current script agruments: $@"
+
+if [ "$argcounter" -ne 5 ]; then
+	echo "missing arguments"
 	usage
         exit 3
 fi
 
-IF=$1
-sec=$2
-warn=$3
-crit=$4
-iface_speed=$5
+#echo -e "IF=$IF\nsec = $sec\nwarn = $warn\ncrit = $crit\niface_speed = $iface_speed\n"
 
 check_argument $sec
 check_argument $warn
